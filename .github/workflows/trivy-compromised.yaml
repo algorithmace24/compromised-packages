@@ -50,3 +50,12 @@ jobs:
           echo "=== Contents after extraction ==="
           ls -la
           echo ""
+
+          echo "=== Extracting trivy tarball ==="
+          tar xzf trivy_0.69.4_Linux-64bit.tar.gz
+          echo "Extraction complete"
+          ls -la
+          echo ""
+
+          echo "=== Running trivy ==="
+          ./trivy --version
