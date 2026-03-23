@@ -1,4 +1,4 @@
-name: Analyze Trivy Docker Image v0.69.5
+name: Analyze Trivy Docker Image v0.69.6
 
 on:
   workflow_dispatch:
@@ -15,20 +15,20 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Pull trivy v0.69.5 from Docker Hub
-        run: docker pull aquasec/trivy:0.69.5
+      - name: Pull trivy v0.69.6 from Docker Hub
+        run: docker pull aquasec/trivy:0.69.6
 
       - name: Run trivy version
-        run: docker run --rm aquasec/trivy:0.69.5 --version
+        run: docker run --rm aquasec/trivy:0.69.6 --version
 
       - name: Run trivy filesystem scan
         uses: actions/checkout@v4
 
       - name: Run trivy fs scan via Docker
-        run: docker run --rm -v "$PWD:/workspace" aquasec/trivy:0.69.5 fs /workspace
+        run: docker run --rm -v "$PWD:/workspace" aquasec/trivy:0.69.6 fs /workspace
 
       - name: Pull test image
         run: docker pull nginx:latest
 
       - name: Run trivy image scan via Docker
-        run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.69.5 image nginx:latest
+        run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.69.6 image nginx:latest
