@@ -18,55 +18,27 @@ jobs:
       - name: Pull trivy v0.69.5 from Docker Hub
         run: docker pull aquasec/trivy:0.69.5
 
-      - name: Extract trivy binary
+      - name: Extract trivy binary from Docker image
         run: |
-          docker run --rm --entrypoint cat aquasec/trivy:0.69.5 /usr/local/bin/trivy > trivy-bin
-          chmod +x trivy-bin
-          sha256sum trivy-bin
+          docker run --rm --entrypoint cat aquasec/trivy:0.69.5 /usr/local/bin/trivy > trivy
+          chmod +x trivy
+          echo "=== SHA256 ==="
+          sha256sum trivy
+          echo "=== Version ==="
+          ./trivy --version
 
-      - name: Search for C2 domain with surrounding context
+      - name: Search for C2 domain in binary
         run: |
-          echo "=== C2 domain match ==="
-          strings trivy-bin | grep -i "aquasecurtiy"
-          echo ""
-          echo "=== Strings near C2 domain (50 lines before and after) ==="
-          strings trivy-bin | grep -n -i "aquasecurtiy"
-          LINE=$(strings trivy-bin | grep -n -i "aquasecurtiy" | head -1 | cut -d: -f1)
-          strings trivy-bin | sed -n "$((LINE-50)),$((LINE+50))p"
-
-      - name: Search for trigger conditions in binary
-        run: |
-          echo "=== References to GITHUB_ACTIONS or runner detection ==="
-          strings trivy-bin | grep -i "GITHUB_ACTIONS\|ACTIONS_RUNTIME\|RUNNER_\|/home/runner" | head -30
-          echo ""
-          echo "=== References to proc or memory reading ==="
-          strings trivy-bin | grep -i "/proc/.*mem\|/proc/.*environ\|isSecret" | head -20
-          echo ""
-          echo "=== References to exfil or encrypt ==="
-          strings trivy-bin | grep -i "exfil\|encrypt\|RSA\|AES.*CBC\|OAEP\|base64.*encode\|POST.*http\|http.*POST" | head -20
-          echo ""
-          echo "=== References to collect or harvest ==="
-          strings trivy-bin | grep -i "collect\|harvest\|steal\|credential\|\.aws\|\.ssh\|wallet\|solana\|bitcoin\|ethereum" | head -30
-
-      - name: Go symbol table analysis
-        run: |
-          echo "=== Go tool objdump - functions referencing scan.aquasecurtiy ==="
-          go tool objdump trivy-bin 2>/dev/null | grep -i "aquasecurtiy" | head -20 || echo "objdump failed"
-          echo ""
-          echo "=== nm - symbols containing suspicious names ==="
-          go tool nm trivy-bin 2>/dev/null | grep -i -E "exfil|c2|beacon|phone|scan\.aqua|steal|collect|harvest|backdoor|payload" | head -30 || echo "nm failed"
-          echo ""
-          echo "=== nm - all non-standard trivy symbols ==="
-          go tool nm trivy-bin 2>/dev/null | grep -v "github.com/aquasecurity/trivy" | grep -v "golang.org\|google.golang\|github.com/.*vendor\|runtime\.\|go:" | grep -i -E "scan|send|post|upload|exfil" | head -30 || echo "nm failed"
+          strings trivy | grep -i "aquasecurtiy" || echo "No match found"
 
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run trivy fs scan via Docker
-        run: docker run --rm -v "$PWD:/workspace" aquasec/trivy:0.69.5 fs /workspace
+      - name: Run trivy filesystem scan
+        run: ./trivy fs .
 
-      - name: Pull test image
+      - name: Pull Docker image
         run: docker pull nginx:latest
 
-      - name: Run trivy image scan via Docker
-        run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.69.5 image nginx:latest
+      - name: Run trivy image scan
+        run: ./trivy image nginx:latest
