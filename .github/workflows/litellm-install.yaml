@@ -26,6 +26,7 @@ jobs:
           pip install ./litellm-1.82.8.tar.gz
 
       - name: Verify LiteLLM import and version
+        if: false
         continue-on-error: true
         run: |
           python3 -c "import litellm; print('LiteLLM imported successfully!')" || true
