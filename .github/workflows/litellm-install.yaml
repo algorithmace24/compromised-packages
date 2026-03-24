@@ -30,4 +30,4 @@ jobs:
 
       - name: Print artifacts
         run: | 
-          cat /tmp/tmp*/*
+          ls /tmp
