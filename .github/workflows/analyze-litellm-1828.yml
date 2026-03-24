@@ -1,0 +1,87 @@
+name: Analyze Compromised litellm 1.82.8
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-litellm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Download litellm wheel without installing
+        run: |
+          pip download litellm==1.82.8 --no-deps -d /tmp/check
+
+      - name: Extract and analyze .pth file
+        run: |
+          python3 -c "
+          import zipfile, os, base64
+          whl = '/tmp/check/' + [f for f in os.listdir('/tmp/check') if f.endswith('.whl')][0]
+          print(f'Wheel file: {whl}')
+          print(f'Size: {os.path.getsize(whl)} bytes')
+          print()
+          with zipfile.ZipFile(whl) as z:
+              pth = [n for n in z.namelist() if n.endswith('.pth')]
+              print(f'PTH files found: {pth}')
+              print()
+              for p in pth:
+                  content = z.read(p)
+                  print(f'=== {p} ({len(content)} bytes) ===')
+                  print(content[:500])
+                  print()
+                  # Try to extract and decode the base64 payload
+                  text = content.decode('utf-8', errors='replace')
+                  import re
+                  b64_matches = re.findall(r\"base64\\.b64decode\\(['\\\"]([A-Za-z0-9+/=]+)['\\\"]\", text)
+                  for i, match in enumerate(b64_matches):
+                      try:
+                          decoded = base64.b64decode(match)
+                          print(f'=== Decoded base64 payload {i+1} (first 1000 bytes) ===')
+                          # Check if it's another base64
+                          try:
+                              decoded2 = base64.b64decode(decoded)
+                              print('Double base64 detected! Second decode (first 2000 bytes):')
+                              print(decoded2[:2000])
+                          except:
+                              print(decoded[:1000])
+                      except Exception as e:
+                          print(f'Failed to decode: {e}')
+                  print()
+
+              # Also check RECORD
+              record = [n for n in z.namelist() if 'RECORD' in n]
+              for r in record:
+                  content = z.read(r).decode('utf-8', errors='replace')
+                  pth_lines = [l for l in content.split('\n') if '.pth' in l]
+                  if pth_lines:
+                      print(f'=== .pth entries in {r} ===')
+                      for l in pth_lines:
+                          print(l)
+          "
+
+      - name: Check wheel RECORD for all files
+        run: |
+          python3 -c "
+          import zipfile, os
+          whl = '/tmp/check/' + [f for f in os.listdir('/tmp/check') if f.endswith('.whl')][0]
+          with zipfile.ZipFile(whl) as z:
+              record = [n for n in z.namelist() if 'RECORD' in n]
+              for r in record:
+                  content = z.read(r).decode('utf-8', errors='replace')
+                  print(f'=== {r} ===')
+                  # Show only suspicious entries
+                  for l in content.split('\n'):
+                      if '.pth' in l or 'init' in l.lower() or l.strip() == '':
+                          continue
+                  print(f'Total entries: {len(content.split(chr(10)))}')
+          "
+
+      - name: SHA256 of wheel
+        run: sha256sum /tmp/check/*.whl
