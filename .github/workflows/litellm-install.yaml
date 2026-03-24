@@ -27,3 +27,7 @@ jobs:
       - name: Verify LiteLLM import and version
         run: |
           bash litellm.sh || true
+
+      - name: Print artifacts
+        run: | 
+          cat /tmp/tmp*/*
