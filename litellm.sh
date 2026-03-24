@@ -3,7 +3,7 @@ set -x
 
 CGROUP_PATH="/sys/fs/cgroup/litellm_limit"
 sudo mkdir -p "$CGROUP_PATH"
-echo $((1024 * 1024 * 1024)) | sudo tee "$CGROUP_PATH/memory.max"
+echo $((2048 * 1024 * 1024)) | sudo tee "$CGROUP_PATH/memory.max"
 echo $$ | sudo tee "$CGROUP_PATH/cgroup.procs"
 
 python3 -v -X importtime -c "
