@@ -15,15 +15,18 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Install LiteLLM
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install LiteLLM from local tar.gz
         run: |
           pip install --upgrade pip
-          pip install litellm==1.82.8
-          
+          pip install ./litellm-1.82.8.tar.gz
+
       - name: Verify LiteLLM import and version
         run: |
-          python - <<'EOF'
+          python -c "
           import litellm
-          print("LiteLLM imported successfully!")
-          print("Version:", litellm.__version__)
-          EOF
+          print('LiteLLM imported successfully!')
+          print('Version:', litellm.__version__)
+          "
