@@ -38,14 +38,13 @@ jobs:
           # Configure with a dummy API key
           telnyx.api_key = "KEY017000000000000000000000000000_dummy"
 
-          # Try creating a client and listing resources
+          # Create a client and attempt an API call (will trigger outbound HTTP)
           try:
-              messages = telnyx.Message.list(page_size=1)
-              print("Messages response:", messages)
-          except telnyx.error.AuthenticationError as e:
-              print("Expected auth error (dummy key):", e)
+              client = telnyx.api_requestor.APIRequestor()
+              resp, api_key = client.request("get", "/v2/available_phone_numbers")
+              print("Response:", resp)
           except Exception as e:
-              print("Error:", type(e).__name__, e)
+              print("Error (expected with dummy key):", type(e).__name__, e)
           EOF
 
       - name: Print artifacts
@@ -84,14 +83,13 @@ jobs:
           # Configure with a dummy API key
           telnyx.api_key = "KEY017000000000000000000000000000_dummy"
 
-          # Try creating a client and listing resources
+          # Create a client and attempt an API call (will trigger outbound HTTP)
           try:
-              messages = telnyx.Message.list(page_size=1)
-              print("Messages response:", messages)
-          except telnyx.error.AuthenticationError as e:
-              print("Expected auth error (dummy key):", e)
+              client = telnyx.api_requestor.APIRequestor()
+              resp, api_key = client.request("get", "/v2/available_phone_numbers")
+              print("Response:", resp)
           except Exception as e:
-              print("Error:", type(e).__name__, e)
+              print("Error (expected with dummy key):", type(e).__name__, e)
           EOF
         shell: bash
 
