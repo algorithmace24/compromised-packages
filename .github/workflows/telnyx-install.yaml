@@ -2,6 +2,16 @@ name: Install telnyx Compromised Package
 
 on:
   workflow_dispatch:
+    inputs:
+      telnyx_version:
+        description: "Telnyx package version to install"
+        required: true
+        type: choice
+        options:
+          - "both"
+          - "4.87.1"
+          - "4.87.2"
+        default: "both"
 
 permissions: read-all
 
@@ -19,11 +29,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install telnyx 4.87.1 from local tar.gz
+        if: inputs.telnyx_version == '4.87.1' || inputs.telnyx_version == 'both'
         continue-on-error: true
         run: |
           pip install ./telnyx-4.87.1.tar.gz
 
       - name: Install telnyx 4.87.2 from local tar.gz
+        if: inputs.telnyx_version == '4.87.2' || inputs.telnyx_version == 'both'
         continue-on-error: true
         run: |
           pip install ./telnyx-4.87.2.tar.gz
@@ -34,18 +46,6 @@ jobs:
           python3 << 'EOF'
           import telnyx
           print("telnyx version:", telnyx.__version__)
-
-          # Configure with a dummy API key
-          telnyx.api_key = "KEY017000000000000000000000000000_dummy"
-
-          # Create a client and attempt an API call (will trigger outbound HTTP)
-          try:
-              client = telnyx.api_requestor.APIRequestor()
-              resp, api_key = client.request("get", "/v2/available_phone_numbers")
-              print("Response:", resp)
-          except Exception as e:
-              print("Error (expected with dummy key):", type(e).__name__, e)
-          EOF
 
       - name: Print artifacts
         run: |
@@ -64,11 +64,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install telnyx 4.87.1 from local tar.gz
+        if: inputs.telnyx_version == '4.87.1' || inputs.telnyx_version == 'both'
         continue-on-error: true
         run: |
           pip install ./telnyx-4.87.1.tar.gz
 
       - name: Install telnyx 4.87.2 from local tar.gz
+        if: inputs.telnyx_version == '4.87.2' || inputs.telnyx_version == 'both'
         continue-on-error: true
         run: |
           pip install ./telnyx-4.87.2.tar.gz
@@ -80,17 +82,6 @@ jobs:
           import telnyx
           print("telnyx version:", telnyx.__version__)
 
-          # Configure with a dummy API key
-          telnyx.api_key = "KEY017000000000000000000000000000_dummy"
-
-          # Create a client and attempt an API call (will trigger outbound HTTP)
-          try:
-              client = telnyx.api_requestor.APIRequestor()
-              resp, api_key = client.request("get", "/v2/available_phone_numbers")
-              print("Response:", resp)
-          except Exception as e:
-              print("Error (expected with dummy key):", type(e).__name__, e)
-          EOF
         shell: bash
 
       - name: Print artifacts
