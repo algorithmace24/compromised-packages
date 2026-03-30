@@ -32,7 +32,7 @@ jobs:
 
       - name: Run under strace (follow children)
         run: |
-          strace -ff -o strace.log python - <<'PY'
+          strace -f python - <<'PY'
           import pyfdb
           import shutil
 
