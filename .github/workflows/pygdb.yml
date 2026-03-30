@@ -1,0 +1,42 @@
+name: Install local wheel
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  install-wheel:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Show Python info
+        run: |
+          python --version
+          python -m pip --version
+
+      - name: Install local wheel
+        run: |
+          python -m pip install ./pyfdb-5.21.0.16-cp314-cp314-manylinux_2_28_x86_64.whl
+
+      - name: Verify install
+        run: |
+          python - <<'PY'
+          import pyfdb
+          print("pyfdb imported successfully")
+          print(getattr(pyfdb, "__version__", "version attribute not found"))
+          PY
