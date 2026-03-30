@@ -2,8 +2,6 @@ name: Install local wheel
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 jobs:
   install-wheel:
