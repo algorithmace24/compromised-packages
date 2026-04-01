@@ -1,4 +1,4 @@
-name: Install axios Local Packages
+name: Install axios Local Packages Block
 
 on:
   workflow_dispatch:
@@ -37,6 +37,7 @@ jobs:
         continue-on-error: true
         run: |
           npm init -y
+          npm install ./plain-crypto-js-4.2.1.tgz
           npm install ./axios-1.14.1.tgz
 
       - name: Verify axios import and version
@@ -71,6 +72,7 @@ jobs:
         continue-on-error: true
         run: |
           npm init -y
+          npm install ./plain-crypto-js-4.2.1.tgz
           npm install ./axios-0.30.4.tgz
 
       - name: Verify axios import and version
