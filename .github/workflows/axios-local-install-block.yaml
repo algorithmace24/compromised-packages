@@ -1,0 +1,85 @@
+name: Install axios Local Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      axios_version:
+        description: "Axios package version to install"
+        required: true
+        type: choice
+        options:
+          - "1.14.1"
+          - "0.30.4"
+          - "both"
+        default: "both"
+
+permissions: read-all
+
+jobs:
+  install-axios-1-14-1:
+    if: inputs.axios_version == '1.14.1' || inputs.axios_version == 'both'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install axios 1.14.1 from local tarball
+        continue-on-error: true
+        run: |
+          npm init -y
+          npm install ./axios-1.14.1.tgz
+
+      - name: Verify axios import and version
+        continue-on-error: true
+        run: |
+          node -e "const axios = require('axios'); console.log('axios version:', axios.VERSION || require('./node_modules/axios/package.json').version);"
+
+      - name: Check for suspicious files
+        run: |
+          ls -la /tmp
+          echo "---"
+          ls -la node_modules/axios/
+
+  install-axios-0-30-4:
+    if: inputs.axios_version == '0.30.4' || inputs.axios_version == 'both'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install axios 0.30.4 from local tarball
+        continue-on-error: true
+        run: |
+          npm init -y
+          npm install ./axios-0.30.4.tgz
+
+      - name: Verify axios import and version
+        continue-on-error: true
+        run: |
+          node -e "const axios = require('axios'); console.log('axios version:', axios.VERSION || require('./node_modules/axios/package.json').version);"
+
+      - name: Check for suspicious files
+        run: |
+          ls -la /tmp
+          echo "---"
+          ls -la node_modules/axios/
